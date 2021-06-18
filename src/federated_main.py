@@ -142,6 +142,13 @@ if __name__ == '__main__':
         pickle.dump([train_loss, train_accuracy], f)
 
     print('\n Total Run Time: {0:0.4f}'.format(time.time()-start_time))
+    
+    #save results to csv
+    res = np.asarray([test_acc_list])
+    res_name = '../save/csvData/{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}].csv'. \
+        format(args.dataset, args.model, args.epochs, args.frac, args.iid,
+               args.local_ep, args.local_bs)
+    np.savetxt(res_name,res,delimiter=",")
 
     # PLOTTING (optional)
     import matplotlib
