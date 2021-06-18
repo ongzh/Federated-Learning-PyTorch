@@ -29,7 +29,8 @@ if __name__ == '__main__':
     args = args_parser()
     exp_details(args)
 
-    if args.gpu_id:
+    if args.gpu:
+    #if args.gpu_id:
         torch.cuda.set_device(args.gpu_id)
     device = 'cuda' if args.gpu else 'cpu'
 
@@ -72,6 +73,9 @@ if __name__ == '__main__':
     print_every = 2
     val_loss_pre, counter = 0, 0
 
+    #Test each round
+    test_acc_list = []
+
     for epoch in tqdm(range(args.epochs)):
         local_weights, local_losses = [], []
         print(f'\n | Global Training Round : {epoch+1} |\n')
@@ -100,19 +104,27 @@ if __name__ == '__main__':
         # Calculate avg training accuracy over all users at every epoch
         list_acc, list_loss = [], []
         global_model.eval()
+
+
         for c in range(args.num_users):
             local_model = LocalUpdate(args=args, dataset=train_dataset,
                                       idxs=user_groups[idx], logger=logger)
             acc, loss = local_model.inference(model=global_model)
             list_acc.append(acc)
             list_loss.append(loss)
+
         train_accuracy.append(sum(list_acc)/len(list_acc))
+
+        round_test_acc, round_test_loss = test_inference(args, global_model, test_dataset)
+        test_acc_list.append(round_test_acc)
+
 
         # print global training loss after every 'i' rounds
         if (epoch+1) % print_every == 0:
             print(f' \nAvg Training Stats after {epoch+1} global rounds:')
             print(f'Training Loss : {np.mean(np.array(train_loss))}')
             print('Train Accuracy: {:.2f}% \n'.format(100*train_accuracy[-1]))
+            print('Test Accuracy at round '+ str(epoch+1)+': {:.2f}% \n'.format(100*round_test_acc))
 
     # Test inference after completion of training
     test_acc, test_loss = test_inference(args, global_model, test_dataset)
@@ -132,11 +144,11 @@ if __name__ == '__main__':
     print('\n Total Run Time: {0:0.4f}'.format(time.time()-start_time))
 
     # PLOTTING (optional)
-    # import matplotlib
-    # import matplotlib.pyplot as plt
-    # matplotlib.use('Agg')
+    import matplotlib
+    import matplotlib.pyplot as plt
+    matplotlib.use('Agg')
 
-    # Plot Loss curve
+    # # Plot Loss curve
     # plt.figure()
     # plt.title('Training Loss vs Communication rounds')
     # plt.plot(range(len(train_loss)), train_loss, color='r')
@@ -144,14 +156,25 @@ if __name__ == '__main__':
     # plt.xlabel('Communication Rounds')
     # plt.savefig('../save/fed_{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}]_loss.png'.
     #             format(args.dataset, args.model, args.epochs, args.frac,
-    #                    args.iid, args.local_ep, args.local_bs))
-    #
+    #                     args.iid, args.local_ep, args.local_bs))
+
     # # Plot Average Accuracy vs Communication rounds
     # plt.figure()
     # plt.title('Average Accuracy vs Communication rounds')
-    # plt.plot(range(len(train_accuracy)), train_accuracy, color='k')
+    # plt.plot(range(len(train_accuracy)), train_accuracy , color='k')
     # plt.ylabel('Average Accuracy')
     # plt.xlabel('Communication Rounds')
     # plt.savefig('../save/fed_{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}]_acc.png'.
-    #             format(args.dataset, args.model, args.epochs, args.frac,
-    #                    args.iid, args.local_ep, args.local_bs))
+    #              format(args.dataset, args.model, args.epochs, args.frac,
+    #                     args.iid, args.local_ep, args.local_bs))
+
+    #Plot Test Accuracy vs Communication rounds
+    plt.figure()
+    plt.title('Test Accuracy vs Communication rounds')
+    plt.plot(range(len(train_accuracy)), test_acc_list, color='k')
+    plt.ylabel('Test Accuracy')
+    plt.xlabel('Communication Rounds')
+    plt.ylim([0.1, 1])
+    plt.savefig('../save/fed_{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}]_test_acc.png'.
+                format(args.dataset, args.model, args.epochs, args.frac,
+                       args.iid, args.local_ep, args.local_bs))
