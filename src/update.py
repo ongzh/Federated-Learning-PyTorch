@@ -39,16 +39,25 @@ class LocalUpdate(object):
         and user indexes.
         """
         # split indexes for train, validation, and test (80, 10, 10)
+
         idxs_train = idxs[:int(0.8*len(idxs))]
         idxs_val = idxs[int(0.8*len(idxs)):int(0.9*len(idxs))]
         idxs_test = idxs[int(0.9*len(idxs)):]
 
+
         trainloader = DataLoader(DatasetSplit(dataset, idxs_train),
                                  batch_size=self.args.local_bs, shuffle=True)
-        validloader = DataLoader(DatasetSplit(dataset, idxs_val),
-                                 batch_size=int(len(idxs_val)/10), shuffle=False)
-        testloader = DataLoader(DatasetSplit(dataset, idxs_test),
-                                batch_size=int(len(idxs_test)/10), shuffle=False)
+        if len(idxs_val) < 10:
+            validloader = DataLoader(DatasetSplit(dataset, idxs_val),
+                                     batch_size=1, shuffle=False)
+            testloader = DataLoader(DatasetSplit(dataset, idxs_test),
+                                    batch_size=1, shuffle=False)
+        else:
+            validloader = DataLoader(DatasetSplit(dataset, idxs_val),
+                                     batch_size=int(len(idxs_val)/10), shuffle=False)
+            testloader = DataLoader(DatasetSplit(dataset, idxs_test),
+                                    batch_size=int(len(idxs_test)/10), shuffle=False)
+
         return trainloader, validloader, testloader
 
     def update_weights(self, model, global_round):
@@ -56,12 +65,20 @@ class LocalUpdate(object):
         model.train()
         epoch_loss = []
 
+        decay = self.args.decay
+
+        if decay != 0:
+            learn_rate = self.args.lr * pow(decay, global_round)
+        else:
+            learn_rate = self.args.lr
+
+        print(learn_rate)
         # Set optimizer for the local updates
         if self.args.optimizer == 'sgd':
-            optimizer = torch.optim.SGD(model.parameters(), lr=self.args.lr,
+            optimizer = torch.optim.SGD(model.parameters(), lr=(learn_rate),
                                         momentum=0.5)
         elif self.args.optimizer == 'adam':
-            optimizer = torch.optim.Adam(model.parameters(), lr=self.args.lr,
+            optimizer = torch.optim.Adam(model.parameters(), lr=(learn_rate),
                                          weight_decay=1e-4)
 
         for iter in range(self.args.local_ep):
