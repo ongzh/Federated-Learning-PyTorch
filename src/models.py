@@ -3,6 +3,7 @@
 # Python version: 3.6
 
 from torch import nn
+import torch
 import torch.nn.functional as F
 
 
@@ -79,12 +80,13 @@ class CNNCifar(nn.Module):
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
+        # x = x.view(-1, 16 * 5 * 5)
+        x = torch.flatten(x,1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
-        return F.log_softmax(x, dim=1)
-
+        #return F.log_softmax(x, dim=1)
+        return x
 class modelC(nn.Module):
     def __init__(self, input_size, n_classes=10, **kwargs):
         super(AllConvNet, self).__init__()

@@ -145,9 +145,9 @@ if __name__ == '__main__':
     
     #save results to csv
     res = np.asarray([test_acc_list])
-    res_name = '../save/csvResults/{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}].csv'. \
+    res_name = '../save/csvResults/{}_{}_{}_C[{}]_iid[{}]_E[{}]_B[{}]_LR[{}].csv'. \
         format(args.dataset, args.model, args.epochs, args.frac, args.iid,
-               args.local_ep, args.local_bs)
+               args.local_ep, args.local_bs, args.lr)
     np.savetxt(res_name,res,delimiter=",")
 
     # PLOTTING (optional)
