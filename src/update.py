@@ -31,7 +31,10 @@ class LocalUpdate(object):
             dataset, list(idxs))
         self.device = 'cuda' if args.gpu else 'cpu'
         # Default criterion set to NLL loss function
-        self.criterion = nn.NLLLoss().to(self.device)
+        if args.dataset == "cifar":
+            self.criterion = nn.CrossEntropyLoss().to(self.device)
+        else:
+            self.criterion = nn.NLLLoss().to(self.device)
 
     def train_val_test(self, dataset, idxs):
         """
@@ -76,7 +79,7 @@ class LocalUpdate(object):
         # Set optimizer for the local updates
         if self.args.optimizer == 'sgd':
             optimizer = torch.optim.SGD(model.parameters(), lr=(learn_rate),
-                                        momentum=0.5)
+                                        momentum=0.9)
         elif self.args.optimizer == 'adam':
             optimizer = torch.optim.Adam(model.parameters(), lr=(learn_rate),
                                          weight_decay=1e-4)
