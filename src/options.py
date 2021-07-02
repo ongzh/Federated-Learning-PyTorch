@@ -42,7 +42,7 @@ def args_parser():
                         help="Whether use max pooling rather than \
                         strided convolutions")
 
-     parser.add_argument('--decay', type=float, default=0, help="learning rate decay per global round")
+    parser.add_argument('--decay', type=float, default=0, help="learning rate decay per global round")
 
     # other arguments
     parser.add_argument('--dataset', type=str, default='mnist', help="name \
