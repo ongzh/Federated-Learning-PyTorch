@@ -19,13 +19,23 @@ def get_dataset(args):
         data_dir = '../data/cifar/'
         apply_transform = transforms.Compose(
             [transforms.ToTensor(),
-             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+             transforms.RandomCrop(size=24),
+             transforms.RandomApply(torch.nn.ModuleList([
+                 transforms.ColorJitter(),]),p=0.5),
+             transforms.RandomAutocontrast(),
+             transforms.RandomHorizontalFlip(),
+             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))])
+
+        basic_transform = transforms.Compose(
+                [transforms.ToTensor(),
+                 transforms.RandomCrop(size=24),
+                 transforms.Normalize((0.4914,0.4822,0.4465),(0.247,0.243,0.261))])
 
         train_dataset = datasets.CIFAR10(data_dir, train=True, download=True,
                                        transform=apply_transform)
 
         test_dataset = datasets.CIFAR10(data_dir, train=False, download=True,
-                                      transform=apply_transform)
+                                      transform=basic_transform)
 
         # sample training data amongst users
         if args.iid:
