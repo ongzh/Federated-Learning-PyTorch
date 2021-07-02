@@ -41,6 +41,11 @@ if __name__ == '__main__':
             len_in *= x
             global_model = MLP(dim_in=len_in, dim_hidden=64,
                                dim_out=args.num_classes)
+    elif args.model == 'vgg':
+        if args.dataset == 'cifar':
+            global_model = VGG(args=args)
+        else:
+            exit(args.dataset + ' with ' + args.model + ' not supported')
     else:
         exit('Error: unrecognized model')
 
@@ -59,10 +64,11 @@ if __name__ == '__main__':
                                      weight_decay=1e-4)
 
     trainloader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-    if args.dataset == "cifar" and args.model == "cnn":
+    if args.dataset == 'cifar' or args.dataset == 'fmnist':
         criterion = torch.nn.CrossEntropyLoss().to(device)
     else:
-         criterion = torch.nn.NLLLoss().to(device)
+        criterion = torch.nn.NLLLoss().to(device)
+
     epoch_loss = []
 
     for epoch in tqdm(range(args.epochs)):
@@ -92,7 +98,7 @@ if __name__ == '__main__':
     plt.plot(range(len(epoch_loss)), epoch_loss)
     plt.xlabel('epochs')
     plt.ylabel('Train loss')
-    plt.savefig('../save/nn_{}_{}_{}.png'.format(args.dataset, args.model,
+    plt.savefig('../save/nn_baseline_{}_{}_{}.png'.format(args.dataset, args.model,
                                                  args.epochs))
 
     # testing
