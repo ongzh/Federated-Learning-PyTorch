@@ -48,23 +48,29 @@ class CNNFashion_Mnist(nn.Module):
     def __init__(self, args):
         super(CNNFashion_Mnist, self).__init__()
         self.layer1 = nn.Sequential(
-            nn.Conv2d(1, 16, kernel_size=5, padding=2),
-            nn.BatchNorm2d(16),
+            nn.Conv2d(1, 6, kernel_size=5),
             nn.ReLU(),
-            nn.MaxPool2d(2))
+            nn.MaxPool2d(2, 2))
         self.layer2 = nn.Sequential(
-            nn.Conv2d(16, 32, kernel_size=5, padding=2),
-            nn.BatchNorm2d(32),
+            nn.Conv2d(6, 12, kernel_size=5),
             nn.ReLU(),
-            nn.MaxPool2d(2))
-        self.fc = nn.Linear(7*7*32, 10)
+            nn.MaxPool2d(2, 2))
+        self.fc = nn.Sequential(
+            nn.Linear(12 * 4 * 4, 120),
+            nn.ReLU(),
+            nn.Linear(120, 60),
+            nn.ReLU(),
+        )
+        self.out = nn.Linear(60,10)
+
 
     def forward(self, x):
-        out = self.layer1(x)
-        out = self.layer2(out)
-        out = out.view(out.size(0), -1)
-        out = self.fc(out)
-        return out
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = torch.flatten(x, 1)
+        x = self.fc(x)
+        x = self.out(x)
+        return x
 
 
 class CNNCifar(nn.Module):
@@ -87,6 +93,7 @@ class CNNCifar(nn.Module):
         x = self.fc3(x)
         #return F.log_softmax(x, dim=1)
         return x
+    
 class modelC(nn.Module):
     def __init__(self, input_size, n_classes=10, **kwargs):
         super(AllConvNet, self).__init__()
@@ -120,3 +127,30 @@ class modelC(nn.Module):
         pool_out.squeeze_(-1)
         pool_out.squeeze_(-1)
         return pool_out
+ 
+class VGG(nn.Module):
+    def __init__(self,args):
+        super(VGG, self).__init__()
+        self.inputs = [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M']
+        self.classifier = nn.Linear(512, 10)
+        self.features = self._make_layers(self.inputs)
+
+    def forward(self, x):
+        x = self.features(x)
+        x = x.view(x.size(0), -1)
+        x = self.classifier(x)
+        return x
+
+    def _make_layers(self, inputs):
+        layers = []
+        in_channels = 3
+        for x in inputs:
+            if x == 'M':
+                layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+            else:
+                layers += [nn.Conv2d(in_channels, x, kernel_size=3, padding=1),
+                           nn.BatchNorm2d(x),
+                           nn.ReLU(inplace=True)]
+                in_channels = x
+        layers += [nn.AvgPool2d(kernel_size=1, stride=1)]
+        return nn.Sequential(*layers)
