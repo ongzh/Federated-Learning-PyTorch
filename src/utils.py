@@ -17,19 +17,32 @@ def get_dataset(args):
 
     if args.dataset == 'cifar':
         data_dir = '../data/cifar/'
-        apply_transform = transforms.Compose(
-            [transforms.ToTensor(),
-             transforms.RandomCrop(size=24),
-             transforms.RandomApply(torch.nn.ModuleList([
-                 transforms.ColorJitter(),]),p=0.5),
-             transforms.RandomAutocontrast(),
-             transforms.RandomHorizontalFlip(),
-             transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))])
+        if args.model=='vgg':
+            apply_transform = transforms.Compose([
+                transforms.RandomCrop(32, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.ToTensor(),
+                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+            ])
 
-        basic_transform = transforms.Compose(
+            basic_transform = transforms.Compose([
+                transforms.ToTensor(),
+                transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+            ])
+        else:
+            apply_transform = transforms.Compose(
                 [transforms.ToTensor(),
                  transforms.RandomCrop(size=24),
-                 transforms.Normalize((0.4914,0.4822,0.4465),(0.247,0.243,0.261))])
+                 transforms.RandomApply(torch.nn.ModuleList([
+                     transforms.ColorJitter(),]),p=0.5),
+                 transforms.RandomAutocontrast(),
+                 transforms.RandomHorizontalFlip(),
+                 transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))])
+
+            basic_transform = transforms.Compose(
+                    [transforms.ToTensor(),
+                     transforms.RandomCrop(size=24),
+                     transforms.Normalize((0.4914,0.4822,0.4465),(0.247,0.243,0.261))])
 
         train_dataset = datasets.CIFAR10(data_dir, train=True, download=True,
                                        transform=apply_transform)
