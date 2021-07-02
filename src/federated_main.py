@@ -55,6 +55,11 @@ if __name__ == '__main__':
             len_in *= x
             global_model = MLP(dim_in=len_in, dim_hidden=64,
                                dim_out=args.num_classes)
+    elif args.model == 'vgg':
+        if args.dataset == 'cifar':
+            global_model = VGG(args=args)
+        else:
+            exit(args.dataset + ' with ' + args.model + ' not supported')
     else:
         exit('Error: unrecognized model')
 
