@@ -41,6 +41,8 @@ def args_parser():
     parser.add_argument('--max_pool', type=str, default='True',
                         help="Whether use max pooling rather than \
                         strided convolutions")
+    parser.add_argument('--pretrained', type=str, default='false',
+                        help="whether model is pretrained")
 
     parser.add_argument('--decay', type=float, default=0, help="learning rate decay per global round")
 
