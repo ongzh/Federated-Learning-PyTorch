@@ -56,7 +56,14 @@ if __name__ == '__main__':
             global_model = MLP(dim_in=len_in, dim_hidden=64,
                                dim_out=args.num_classes)
     elif args.model == 'vgg':
-        if args.dataset == 'cifar':
+        if args.dataset == 'cifar' and args.pretrained:
+            global_model= models.vgg16(pretrained = True )
+            # change the number of classes
+            global_model.classifier[6].out_features = 10
+            # freeze convolution weights
+            for param in global_model.features.parameters():
+                param.requires_grad = False
+        elif args.dataset =='cifar':
             global_model = VGG(args=args)
         else:
             exit(args.dataset + ' with ' + args.model + ' not supported')
