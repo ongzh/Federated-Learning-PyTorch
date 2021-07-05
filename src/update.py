@@ -31,7 +31,7 @@ class LocalUpdate(object):
             dataset, list(idxs))
         self.device = 'cuda' if args.gpu else 'cpu'
         # Default criterion set to NLL loss function
-        if args.dataset == "cifar":
+        if args.dataset == "cifar" or args.dataset="fmnist":
             self.criterion = nn.CrossEntropyLoss().to(self.device)
         else:
             self.criterion = nn.NLLLoss().to(self.device)
