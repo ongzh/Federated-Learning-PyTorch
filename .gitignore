@@ -1,1 +1,8 @@
 .DS_Store
+logs/
+data/cifar/
+data/fashion_mnist/
+data/mnist/
+save/csvResults/
+save/objects/
+save/ 

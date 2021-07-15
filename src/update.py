@@ -5,6 +5,7 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
+import gc
 
 
 class DatasetSplit(Dataset):
@@ -46,7 +47,6 @@ class LocalUpdate(object):
         idxs_train = idxs[:int(0.8*len(idxs))]
         idxs_val = idxs[int(0.8*len(idxs)):int(0.9*len(idxs))]
         idxs_test = idxs[int(0.9*len(idxs)):]
-
 
         trainloader = DataLoader(DatasetSplit(dataset, idxs_train),
                                  batch_size=self.args.local_bs, shuffle=True)
@@ -103,6 +103,8 @@ class LocalUpdate(object):
                 self.logger.add_scalar('loss', loss.item())
                 batch_loss.append(loss.item())
             epoch_loss.append(sum(batch_loss)/len(batch_loss))
+            gc.collect()
+            torch.cuda.empty_cache()
 
         return model.state_dict(), sum(epoch_loss) / len(epoch_loss)
 
@@ -144,6 +146,8 @@ def test_inference(args, model, test_dataset):
                             shuffle=False)
 
     for batch_idx, (images, labels) in enumerate(testloader):
+        gc.collect()
+        torch.cuda.empty_cache()
         images, labels = images.to(device), labels.to(device)
 
         # Inference
