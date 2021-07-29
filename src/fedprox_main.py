@@ -103,6 +103,8 @@ if __name__ == '__main__':
         # Local Epochs list to account for stragglers
         if args.stragglers == 0:
             local_epoch_list = np.array([args.local_ep] * m)
+            idxs_users = np.random.choice(range(args.num_users), m, replace=False)
+
         else:
             straggler_size = int(args.stragglers * m)
             local_epoch_list = np.random.randint(1, args.local_ep, straggler_size)
@@ -110,14 +112,22 @@ if __name__ == '__main__':
             remainders = m - straggler_size
             rem_list = [args.local_ep] * remainders
 
-            epoch_list = np.append(local_epoch_list, rem_list, axis=0)
+            #drop stragglers if fed average
+            if args.u == 0.0:
+                local_epoch_list = np.asarray(rem_list)
+                idxs_users = np.random.choice(range(remainders), m, replace=False)
+                print("No proximal term, stragglers will be dropped ")
+            else:
+                local_epoch_list = np.append(local_epoch_list, rem_list, axis=0)
+                idxs_users = np.random.choice(range(args.num_users), m, replace=False)
             # shuffle the list and return
+
             np.random.shuffle(local_epoch_list)
+
 
         global_model.train()
 
-        idxs_users = np.random.choice(range(args.num_users), m, replace=False)
-
+        #training each device
         for idx, local_epoch in zip(idxs_users, local_epoch_list):
             local_model = ProxUpdate(args=args, dataset=train_dataset,
                                       idxs=user_groups[idx], logger=logger, local_epoch=local_epoch)
@@ -141,6 +151,8 @@ if __name__ == '__main__':
         list_acc, list_loss = [], []
         global_model.eval()
 
+
+        #Testing
         for c in range(args.num_users):
             local_model = ProxUpdate(args=args, dataset=train_dataset,
                                       idxs=user_groups[idx], logger=logger, local_epoch=args.local_ep)
