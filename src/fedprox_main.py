@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
     for epoch in tqdm(range(args.epochs)):
         local_weights, local_losses = [], []
-        print(f'\n | Global Training Round : {epoch+1} |\n')
+        print(f"\n | Global Training Round : {epoch+1} |\n")
 
         # Local Epochs list to account for stragglers
         if args.stragglers == 0:
@@ -112,10 +112,10 @@ if __name__ == '__main__':
             remainders = m - straggler_size
             rem_list = [args.local_ep] * remainders
 
-            #drop stragglers if fed average
+            #drop stragglers if fed average (u=0 but stragglers>0)
             if args.u == 0.0:
                 local_epoch_list = np.asarray(rem_list)
-                idxs_users = np.random.choice(range(remainders), m, replace=False)
+                idxs_users = np.random.choice(range(args.num_users), remainders, replace=False)
                 print("No proximal term, stragglers will be dropped ")
             else:
                 local_epoch_list = np.append(local_epoch_list, rem_list, axis=0)
